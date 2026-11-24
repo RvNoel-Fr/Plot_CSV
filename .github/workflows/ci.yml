@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-et-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installation des dépendances
+        run: pip install -r requirements-dev.txt
+      - name: Smoke test du script
+        run: python tracer_courbes.py exemple_mesures.csv -x temps -y tension -y courant --xlabel "Temps (s)" --ylabel "Valeur" --title "Charge RC" --grid --legend -o courbe.png
+      - name: Build de l'exécutable
+        run: ./build_exe.sh
+      - name: Test de l'exécutable
+        run: ./dist/tracer_courbes exemple_mesures.csv -x temps -y tension -o exe_test.png
+      - name: Upload de l'exécutable
+        uses: actions/upload-artifact@v4
+        with:
+          name: tracer_courbes-linux
+          path: dist/tracer_courbes
